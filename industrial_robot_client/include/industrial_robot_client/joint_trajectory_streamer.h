@@ -33,6 +33,7 @@
 #define JOINT_TRAJECTORY_STREAMER_H
 
 #include <boost/thread/thread.hpp>
+#include <queue>
 #include "industrial_robot_client/joint_trajectory_interface.h"
 
 namespace industrial_robot_client
@@ -42,6 +43,7 @@ namespace joint_trajectory_streamer
 
 using industrial_robot_client::joint_trajectory_interface::JointTrajectoryInterface;
 using industrial::joint_traj_pt_message::JointTrajPtMessage;
+using industrial::simple_message::SimpleMessage;
 using industrial::smpl_msg_connection::SmplMsgConnection;
 
 namespace TransferStates
@@ -123,7 +125,11 @@ protected:
   static const size_t max_ptstreaming_queue_elements = 20;
   ros::Duration ptstreaming_last_time_from_start_;   // last valid point streaming point time from start
   int ptstreaming_seq_count_; // sequence count for point streaming (--> JointTrajPtFull::sequence_)
+#if 0 
   std::queue<SimpleMessage> ptstreaming_queue_; // message queue for point streaming
+#else
+  std::queue<JointTrajPtMessage> ptstreaming_queue_; // message queue for point streaming
+#endif
 	// END: Point Streaming additions 
 };
 

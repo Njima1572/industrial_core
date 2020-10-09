@@ -53,6 +53,7 @@ namespace joint_trajectory_interface
   using industrial::smpl_msg_connection::SmplMsgConnection;
   using industrial::tcp_client::TcpClient;
   using industrial::joint_traj_pt_message::JointTrajPtMessage;
+  using industrial::simple_message::SimpleMessage;
   namespace StandardSocketPorts = industrial::simple_socket::StandardSocketPorts;
 
 /**
@@ -161,6 +162,7 @@ protected:
   virtual bool select(const std::vector<std::string>& ros_joint_names, const trajectory_msgs::JointTrajectoryPoint& ros_pt,
                       const std::vector<std::string>& rbt_joint_names, trajectory_msgs::JointTrajectoryPoint* rbt_pt);
 
+
   /**
    * \brief Reduce the ROS velocity commands (per-joint velocities) to a single scalar for communication to the robot.
    *   For flexibility, the robot command message contains both "velocity" and "duration" fields.  The specific robot
@@ -221,7 +223,7 @@ protected:
    *
    * \param msg JointTrajectory message
    */
-  virtual void jointCommandCB(const trajectory_msgs::JointTrajectoryConstPtr &msg) = 0;
+  virtual void jointCommandCB(const trajectory_msgs::JointTrajectoryConstPtr &msg);
 	// END: Point Streaming additions 
 
   /**
@@ -268,6 +270,8 @@ protected:
   std::map<std::string, double> joint_vel_limits_;  // cache of max joint velocities from URDF
   sensor_msgs::JointState cur_joint_pos_;  // cache of last received joint state
 
+  // virtual bool create_message(int seq, const trajectory_msgs::JointTrajectoryPoint &pt, SimpleMessage* msg);
+  JointTrajPtMessage create_message(int seq, const trajectory_msgs::JointTrajectoryPoint &pt);
 
 private:
   static JointTrajPtMessage create_message(int seq, std::vector<double> joint_pos, double velocity, double duration);

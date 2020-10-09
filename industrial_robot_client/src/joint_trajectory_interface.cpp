@@ -151,6 +151,11 @@ void JointTrajectoryInterface::jointTrajectoryCB(const trajectory_msgs::JointTra
   send_to_robot(robot_msgs);
 }
 
+void JointTrajectoryInterface::jointCommandCB(const trajectory_msgs::JointTrajectoryConstPtr &msg)
+{
+  //ROS_INFO("Yessir?");
+}
+
 bool JointTrajectoryInterface::trajectory_to_msgs(const trajectory_msgs::JointTrajectoryConstPtr& traj, std::vector<JointTrajPtMessage>* msgs)
 {
   msgs->clear();
@@ -222,6 +227,7 @@ bool JointTrajectoryInterface::select(const std::vector<std::string>& ros_joint_
   }
   return true;
 }
+
 
 bool JointTrajectoryInterface::calc_speed(const trajectory_msgs::JointTrajectoryPoint& pt, double* rbt_velocity, double* rbt_duration)
 {
@@ -312,6 +318,30 @@ JointTrajPtMessage JointTrajectoryInterface::create_message(int seq, std::vector
   msg.init(pt);
 
   return msg;
+}
+
+JointTrajPtMessage JointTrajectoryInterface::create_message(int seq, const trajectory_msgs::JointTrajectoryPoint &pt)
+{
+  industrial::joint_data::JointData pos;
+  ROS_ASSERT(pt.positions.size() <= (unsigned int)pos.getMaxNumJoints());
+
+  for (size_t i = 0; i < pt.positions.size(); ++i)
+    pos.setJoint(i, pt.positions[i]);
+
+	rbt_JointTrajPt msg_data;
+  JointTrajPtMessage jtp_msg;
+
+  double velocity, duration;
+  if (!calc_speed(pt, &velocity, &duration))
+	{
+			msg_data.init();
+	}else{
+		msg_data.init(seq, pos, velocity, duration);
+	}
+
+  jtp_msg.init(msg_data);
+
+  return jtp_msg;
 }
 
 void JointTrajectoryInterface::trajectoryStop()

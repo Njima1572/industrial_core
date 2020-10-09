@@ -164,9 +164,10 @@ void JointTrajectoryStreamer::jointCommandCB(const trajectory_msgs::JointTraject
     this->mutex_.lock();
     this->state_ = TransferStates::POINT_STREAMING;
     this->ptstreaming_seq_count_ = 0;
-    this->ptstreaming_queue_ = std::queue<SimpleMessage>();
 #if 0
-    this->ptstreaming_queue_jtp_ = std::queue<JointTrajPtMessage>();
+    this->ptstreaming_queue_ = std::queue<SimpleMessage>();
+#else
+    this->ptstreaming_queue_ = std::queue<JointTrajPtMessage>();
 #endif
     this->mutex_.unlock();
 
@@ -234,11 +235,16 @@ void JointTrajectoryStreamer::jointCommandCB(const trajectory_msgs::JointTraject
     // transform point data (e.g. for joint-coupling)
     if (!transform(rbt_pt, &xform_pt))
       return;
-
+#if 0 
     SimpleMessage message;
-    // convert trajectory point to ROS message
     if (!create_message(this->ptstreaming_seq_count_, xform_pt, &message))
       return;
+#else
+		JointTrajPtMessage message;
+		message = create_message(this->ptstreaming_seq_count_, xform_pt);
+
+#endif
+    // convert trajectory point to ROS message
 
     // Update the last time from start
     // Note: last_time_from_start_ variable is only used in this function therefore we do not need to wrap in lock
@@ -373,19 +379,9 @@ void JointTrajectoryStreamer::streamingThread()
       if (this->ptstreaming_queue_.empty())
       {
 
-        if (this->dt_ptstreaming_points_ < this->ptstreaming_timeout_)
-        {
-          this->dt_ptstreaming_points_ = ros::Time::now().toSec() - this->time_ptstreaming_last_point_;
-          ros::Duration(0.005).sleep();
-          ROS_DEBUG("Time since last point: %f", this->dt_ptstreaming_points_);
-          break;
-        }
-				else{
-						
         ROS_INFO("Point streaming complete, setting state to IDLE");
         this->state_ = TransferStates::IDLE;
         break;
-				}
       }
       // if not connected, reconnect.
       if (!this->connection_->isConnected())
@@ -395,16 +391,16 @@ void JointTrajectoryStreamer::streamingThread()
         break;
       }
       // otherwise, send point to robot.
+#if 0
       tmpMsg = this->ptstreaming_queue_.front();
       this->ptstreaming_queue_.pop();
       msg.init(tmpMsg.getMessageType(), CommTypes::SERVICE_REQUEST,
                ReplyTypes::INVALID, tmpMsg.getData());  // set commType=REQUEST
-
-#if 0
+#else 
 			// jtpMsg Version
-			jtpMsg = this->ptstreaming_queue_jtp_.front();
-			this->ptstreaming_queue_jtp_.pop();
-			jtpMsg.toMsg(msg);
+			jtpMsg = this->ptstreaming_queue_.front();
+			this->ptstreaming_queue_.pop();
+			jtpMsg.toRequest(msg);
 #endif
 
       ROS_DEBUG("Sending joint trajectory point");
