@@ -48,7 +48,7 @@ namespace TransferStates
 {
 enum TransferState
 {
-  IDLE = 0, STREAMING =1 //,STARTING, //, STOPPING
+  IDLE = 0, STREAMING = 1, POINT_STREAMING = 2 //,STARTING, //, STOPPING
 };
 }
 typedef TransferStates::TransferState TransferState;
@@ -97,6 +97,10 @@ public:
 
   virtual void jointTrajectoryCB(const trajectory_msgs::JointTrajectoryConstPtr &msg);
 
+	// BEGIN: Point Streaming additions 
+  virtual void jointCommandCB(const trajectory_msgs::JointTrajectoryConstPtr &msg);
+	// END: Point Streaming additions 
+
   virtual bool trajectory_to_msgs(const trajectory_msgs::JointTrajectoryConstPtr &traj, std::vector<JointTrajPtMessage>* msgs);
 
   void streamingThread();
@@ -114,6 +118,13 @@ protected:
   TransferState state_;
   ros::Time streaming_start_;
   int min_buffer_size_;
+
+	// BEGIN: Point Streaming additions 
+  static const size_t max_ptstreaming_queue_elements = 20;
+  ros::Duration ptstreaming_last_time_from_start_;   // last valid point streaming point time from start
+  int ptstreaming_seq_count_; // sequence count for point streaming (--> JointTrajPtFull::sequence_)
+  std::queue<SimpleMessage> ptstreaming_queue_; // message queue for point streaming
+	// END: Point Streaming additions 
 };
 
 } //joint_trajectory_streamer
