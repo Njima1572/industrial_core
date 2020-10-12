@@ -53,6 +53,7 @@ namespace joint_trajectory_interface
   using industrial::smpl_msg_connection::SmplMsgConnection;
   using industrial::tcp_client::TcpClient;
   using industrial::joint_traj_pt_message::JointTrajPtMessage;
+  using industrial::simple_message::SimpleMessage;
   namespace StandardSocketPorts = industrial::simple_socket::StandardSocketPorts;
 
 /**
@@ -161,6 +162,7 @@ protected:
   virtual bool select(const std::vector<std::string>& ros_joint_names, const trajectory_msgs::JointTrajectoryPoint& ros_pt,
                       const std::vector<std::string>& rbt_joint_names, trajectory_msgs::JointTrajectoryPoint* rbt_pt);
 
+
   /**
    * \brief Reduce the ROS velocity commands (per-joint velocities) to a single scalar for communication to the robot.
    *   For flexibility, the robot command message contains both "velocity" and "duration" fields.  The specific robot
@@ -214,6 +216,16 @@ protected:
    */
   virtual void jointTrajectoryCB(const trajectory_msgs::JointTrajectoryConstPtr &msg);
 
+	// BEGIN: Point Streaming additions 
+  /**
+   * \brief Callback function registered to joint_command topic subscriber.
+   *   Specific method is implemented in JointTrajectoryStreamer class.
+   *
+   * \param msg JointTrajectory message
+   */
+  virtual void jointCommandCB(const trajectory_msgs::JointTrajectoryConstPtr &msg);
+	// END: Point Streaming additions 
+
   /**
    * \brief Callback function registered to ROS stopMotion service
    *   Sends stop-motion command to robot.
@@ -246,6 +258,9 @@ protected:
   SmplMsgConnection* connection_;
   ros::Subscriber sub_cur_pos_;  // handle for joint-state topic subscription
   ros::Subscriber sub_joint_trajectory_; // handle for joint-trajectory topic subscription
+	// BEGIN: Point Streaming additions 
+  ros::Subscriber sub_joint_command_; // handle for joint-trajectory topic subscription
+	// END: Point Streaming additions 
   ros::ServiceServer srv_joint_trajectory_;  // handle for joint-trajectory service
   ros::ServiceServer srv_stop_motion_;   // handle for stop_motion service
   std::vector<std::string> all_joint_names_;
@@ -255,6 +270,8 @@ protected:
   std::map<std::string, double> joint_vel_limits_;  // cache of max joint velocities from URDF
   sensor_msgs::JointState cur_joint_pos_;  // cache of last received joint state
 
+  // virtual bool create_message(int seq, const trajectory_msgs::JointTrajectoryPoint &pt, SimpleMessage* msg);
+  JointTrajPtMessage create_message(int seq, const trajectory_msgs::JointTrajectoryPoint &pt);
 
 private:
   static JointTrajPtMessage create_message(int seq, std::vector<double> joint_pos, double velocity, double duration);
