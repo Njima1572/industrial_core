@@ -22,13 +22,13 @@
   <url type="repository">https://github.com/ros-industrial/industrial_core</url>
 
   <buildtool_depend>catkin</buildtool_depend>
-  <buildtool_depend>iliborocos-kdl-dev</buildtool_depend>
+  <buildtool_depend>liborocos-kdl-dev</buildtool_depend>
 
   <depend>trajectory_msgs</depend>
   <depend>pluginlib</depend>
   <depend>moveit_core</depend>
   <depend>moveit_ros_planning</depend>
-  <depend>liborocos_kdl</depend>
+  <depend>liborocos-kdl</depend>
 
   <export>	
     <moveit_core plugin="${prefix}/planning_request_adapters_plugin_description.xml"/> 
